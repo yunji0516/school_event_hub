@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy import text
@@ -18,6 +18,14 @@ migrate = Migrate(app, db)
 #블루프린트 등록
 app.register_blueprint(auth_bp)
 app.register_blueprint(event_bp)
+
+#홈 라우트
+@app.route('/')
+def home():
+    # 최신 행사 가져오기 (날짜 기준으로 정렬)
+    events = Event.query.order_by(Event.date.desc()).limit(6).all()
+    return render_template('home.html', events=events)
+
 
 try:
     with app.app_context():
