@@ -1,6 +1,7 @@
 from app import app, db
-from models import Event, Location, User
+from models import Event, Location, User, UserRole
 from datetime import datetime
+from werkzeug.security import generate_password_hash
 
 # 데이터베이스 초기화 및 더미 데이터 추가
 with app.app_context():
@@ -8,10 +9,18 @@ with app.app_context():
 
     # User 데이터 추가
     if not User.query.filter_by(id=1).first():
-        default_user = User(id=1, name="관리자", email="admin@example.com", password="admin123")
+        default_user = User(
+            id=1,
+            name="김윤지",
+            email="admin@example.com",
+            password=generate_password_hash("admin123"),  # 비밀번호를 해시화
+            role=UserRole.SUPERADMIN  # Enum을 사용할 경우 직접 Enum 값을 지정
+        )
         db.session.add(default_user)
+        db.session.commit()
         print("기본 사용자 추가됨.")
-    
+
+
     # Location 데이터 추가
     if not Location.query.filter_by(name="체육관").first():
         loc1 = Location(name="체육관")
@@ -49,10 +58,11 @@ with app.app_context():
         print("음악 콘서트 이벤트 추가됨.")
     
     try:
-        # 잘못된 날짜
-        invalid_event = Event(title="잘못된 행사", date="2023-01-01", user_id=1)
-        db.session.add(invalid_event)  # 제약 조건 위반으로 오류 발생
+        # 잘못된 날짜를 고쳐 추가하거나 테스트용으로 예외 처리
+        invalid_event = Event(title="잘못된 행사", date=datetime(2024, 12, 1), user_id=1)  # 수정된 날짜
+        db.session.add(invalid_event)
         db.session.commit()
+        print("잘못된 행사 추가 완료.")  # 제약 조건을 만족할 경우
     except Exception as e:
         db.session.rollback()
         print(f"잘못된 데이터 추가 실패: {e}")

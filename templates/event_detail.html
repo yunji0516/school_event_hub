@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}행사 세부 정보{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center fw-bold mb-4">{{ event.title }}</h2>
+
+    <!-- 세부 정보 -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <p class="text-muted mb-2"><strong>날짜:</strong> {{ event.date }}</p>
+            <p class="text-muted mb-2"><strong>장소:</strong> {{ event.location.name if event.location else "미정" }}</p>
+            <p class="mb-0"><strong>설명:</strong></p>
+            <p>{{ event.description if event.description else "설명이 없습니다." }}</p>
+        </div>
+    </div>
+
+    <!-- 참가 신청 -->
+    <div class="card shadow-sm">
+        <div class="card-header text-center">
+            <h5 class="fw-bold mb-0">참가 신청</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('event_bp.register_participant', event_id=event.id) }}">
+                <div class="mb-3">
+                    <label for="name" class="form-label">이름</label>
+                    <input type="text" name="name" id="name" class="form-control" placeholder="이름을 입력하세요" required>
+                </div>
+                <div class="mb-3">
+                    <label for="contact" class="form-label">연락처</label>
+                    <input type="text" name="contact" id="contact" class="form-control" placeholder="연락처를 입력하세요" required>
+                </div>
+                <div class="mb-3">
+                    <label for="student_id" class="form-label">학번</label>
+                    <input type="text" name="student_id" id="student_id" class="form-control" placeholder="학번을 입력하세요" required>
+                </div>
+                <button type="submit" class="btn btn-dark w-100">참가 신청</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

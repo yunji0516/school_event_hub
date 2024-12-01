@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} 참가자 목록{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="fw-bold mb-4 text-center">{{ event.title }} 참가자 목록</h2>
+
+    <!-- 참가자 목록 -->
+    {% if participants %}
+        <div class="list-group mb-4">
+            {% for participant in participants %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1 fw-bold">{{ participant.name }}</h5>
+                        <p class="mb-1 text-muted">연락처: {{ participant.contact }}</p>
+                        <p class="mb-1 text-muted">학번: {{ participant.student_id }}</p>
+                    </div>
+                    <span class="badge {% if participant.attendance %}bg-success{% else %}bg-danger{% endif %}">
+                        {% if participant.attendance %}참석{% else %}불참{% endif %}
+                    </span>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted text-center">참가자가 없습니다.</p>
+    {% endif %}
+
+    <!-- 출석률 -->
+    <div class="mt-4">
+        <h5 class="fw-bold">참석률</h5>
+        <p class="text-muted">총 참가자: {{ total_participants }}명</p>
+        <p class="text-muted">참석률: {{ attendance_rate | round(2) }}%</p>
+    </div>
+
+    <!-- 피드백 -->
+    <div class="mt-4">
+        <h5 class="fw-bold">피드백</h5>
+        {% if feedbacks %}
+            <ul class="list-group">
+                {% for feedback in feedbacks %}
+                    <li class="list-group-item">
+                        <p>{{ feedback.feedback_text }}</p>
+                        <small class="text-muted">평점: {{ feedback.rating }} / 5</small>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">피드백이 없습니다.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

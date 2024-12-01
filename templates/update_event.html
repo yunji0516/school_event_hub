@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}이벤트 수정{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="fw-bold text-center mb-4">이벤트 수정</h2>
+
+    <form action="{{ url_for('event_bp.update_event', id=event.id) }}" method="POST">
+        <div class="mb-3">
+            <label for="title" class="form-label fw-bold">이벤트 제목</label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ event.title }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="date" class="form-label fw-bold">이벤트 날짜</label>
+            <input type="date" class="form-control" id="date" name="date" value="{{ event.date }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="location" class="form-label fw-bold">이벤트 장소</label>
+            <input type="text" class="form-control" id="location" name="location" value="{{ event.location.name if event.location else '' }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label fw-bold">이벤트 설명</label>
+            <textarea class="form-control" id="description" name="description" rows="5">{{ event.description }}</textarea>
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-dark">저장하기</button>
+            <a href="{{ url_for('auth_bp.mypage') }}" class="btn btn-outline-secondary">취소</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

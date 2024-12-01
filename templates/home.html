@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}홈{% endblock %}
+
+{% block content %}
+<div class="text-center my-5 hero-section">
+    <div style="margin-top: 100px;"> 
+        <h1 class="fw-bold display-4">모든 학교 행사를 한눈에!</h1>
+        <p class="text-muted fs-5">쉽고 빠르게 학교 행사를 관리하고 참가하세요.</p>
+        <a href="{{ url_for('event_bp.list_events') }}" class="btn btn-dark btn-lg mt-3">행사 보기</a>
+    </div>
+</div>
+
+<!-- 주요 기능 소개 섹션 -->
+<section class="dark-background py-5 d-flex align-items-center justify-content-center" style="min-height: 300px;">
+    <div class="container text-center">
+        <div class="row justify-content-center align-items-center">
+            <!-- 행사 관리 -->
+            <div class="col-md-4 mb-4 d-flex flex-column align-items-center">
+                <img src="{{ url_for('static', filename='img/free-icon-document-181521.png') }}" alt="이벤트 관리" class="mb-3" style="height: 80px;">
+                <h5 class="fw-bold text-white">행사 관리</h5>
+                <p class="text-white text-center small-text">등록, 수정, 삭제까지 모든 행사를 효율적으로 관리하세요.</p>
+            </div>
+            <!-- 참석 관리 -->
+            <div class="col-md-4 mb-4 d-flex flex-column align-items-center">
+                <img src="{{ url_for('static', filename='img/free-icon-group-181548.png') }}" alt="참석 관리" class="mb-3" style="height: 80px;">
+                <h5 class="fw-bold text-white">참석 관리</h5>
+                <p class="text-white text-center small-text">참석 여부를 확인하고 통계 데이터를 한눈에 확인하세요.</p>
+            </div>
+            <!-- 피드백 수집 -->
+            <div class="col-md-4 mb-4 d-flex flex-column align-items-center">
+                <img src="{{ url_for('static', filename='img/free-icon-heart-181527.png') }}" alt="피드백 수집" class="mb-3" style="height: 80px;">
+                <h5 class="fw-bold text-white">피드백 수집</h5>
+                <p class="text-white text-center small-text">행사 후 피드백을 통해 개선점을 파악하세요.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- 검색 섹션 -->
+<section class="py-5"> 
+    <div class="container text-center">
+        <h2 class="fw-bold mb-4">원하는 행사를 찾아보세요</h2>
+        <form method="GET" action="{{ url_for('event_bp.list_events') }}">
+            <div class="input-group" style="max-width: 500px; margin: 0 auto;"> <!-- 검색 창 길이 제한 -->
+                <input type="text" name="search" class="form-control" placeholder="행사를 검색하세요" value="{{ request.args.get('search', '') }}">
+                <button type="submit" class="btn btn-dark">검색</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- 최신 행사 섹션 -->
+<section class="py-5"> 
+    <div class="container">
+        <h2 class="fw-bold mb-4 text-center">최신 행사</h2>
+        {% if events %}
+            <div class="row"> <!-- Bootstrap row -->
+                {% for event in events %}
+                    <div class="col-lg-4 col-md-6 col-sm-12 mb-4"> <!-- 반응형 컬럼 -->
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold">{{ event.title }}</h5>
+                                <p class="card-text text-muted">
+                                    {{ event.description[:50] if event.description else "설명이 없습니다." }}
+                                </p>
+                                <p class="small text-muted text-muted" style="font-size: 1rem;">날짜: {{ event.date }}</p>
+                                <a href="{{ url_for('event_bp.event_detail', event_id=event.id) }}" class="btn btn-dark btn-sm w-100">자세히 보기</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center text-muted">현재 표시할 행사가 없습니다.</p>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

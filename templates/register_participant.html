@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}참가 신청{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">참가 신청</h2>
+    <p class="text-muted text-center">행사: {{ event.title }}</p>
+    
+    <form method="POST" action="{{ url_for('event_bp.register_participant', event_id=event.id) }}">
+        <div class="mb-3">
+            <label for="name" class="form-label">이름</label>
+            <input type="text" name="name" id="name" class="form-control" placeholder="이름을 입력하세요" required>
+        </div>
+        <div class="mb-3">
+            <label for="contact" class="form-label">연락처</label>
+            <input type="text" name="contact" id="contact" class="form-control" placeholder="연락처를 입력하세요 (예: +1234567890)" required>
+        </div>
+        <div class="mb-3">
+            <label for="student_id" class="form-label">학번</label>
+            <input type="text" name="student_id" id="student_id" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-dark">참가 신청</button>
+    </form>
+</div>
+{% endblock %}

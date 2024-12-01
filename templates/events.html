@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}행사 목록{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="fw-bold text-center mb-4">행사 목록</h2>
+
+    <!-- 검색 창 -->
+    <form method="GET" action="{{ url_for('event_bp.list_events') }}" class="mb-4">
+        <div class="input-group" style="max-width: 500px; margin: 0 auto;">
+            <input type="text" name="search" class="form-control" placeholder="행사를 검색하세요" value="{{ request.args.get('search', '') }}">
+            <button type="submit" class="btn btn-dark">검색</button>
+        </div>
+    </form>
+
+    <!-- 검색 결과 -->
+    {% if search_query %}
+        <p class="text-muted text-center">검색 결과: "{{ search_query }}"</p>
+    {% endif %}
+
+    {% if events %}
+        <ul class="list-group">
+            {% for event in events %}
+                <li class="list-group-item d-flex justify-content-between align-items-center clickable-row" 
+                    onclick="window.location.href='{{ url_for('event_bp.event_detail', event_id=event.id) }}'" 
+                    style="cursor: pointer;">
+                    <div>
+                        <h5 class="fw-bold mb-0">{{ event.title }}</h5>
+                        <p class="text-muted mb-0">{{ event.description[:50] if event.description else "설명이 없습니다." }}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-muted mb-0" style="font-size: 1.2rem; font-weight: bold;">{{ event.date }}</p>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-center text-muted">검색 결과가 없습니다.</p>
+    {% endif %}
+</div>
+{% endblock %}

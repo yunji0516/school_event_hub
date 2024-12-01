@@ -1,8 +1,8 @@
-"""Initial migration
+"""Initial migration with all tables
 
-Revision ID: 7b69162e1ceb
+Revision ID: bb27c263988b
 Revises: 
-Create Date: 2024-11-30 23:30:24.232880
+Create Date: 2024-12-01 04:02:07.195335
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7b69162e1ceb'
+revision = 'bb27c263988b'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -29,6 +29,7 @@ def upgrade():
     sa.Column('name', sa.String(length=50), nullable=False),
     sa.Column('email', sa.String(length=255), nullable=False),
     sa.Column('password', sa.String(length=255), nullable=False),
+    sa.Column('role', sa.Enum('USER', 'ADMIN', 'SUPERADMIN', name='userrole'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('user', schema=None) as batch_op:
@@ -41,7 +42,6 @@ def upgrade():
     sa.Column('location_id', sa.Integer(), nullable=True),
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.CheckConstraint("date >= '2024-12-01'", name='check_event_future_date'),
     sa.CheckConstraint("title <> ''", name='check_title_not_empty'),
     sa.ForeignKeyConstraint(['location_id'], ['location.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
@@ -74,12 +74,29 @@ def upgrade():
     sa.Column('uuid', sa.String(length=36), nullable=False),
     sa.ForeignKeyConstraint(['event_id'], ['event.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('event_id', 'contact', name='unique_event_contact'),
+    sa.UniqueConstraint('event_id', 'name', name='unique_event_name'),
     sa.UniqueConstraint('uuid')
     )
     with op.batch_alter_table('participant', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_participant_event_id'), ['event_id'], unique=False)
 
     # ### end Alembic commands ###
+
+
+    op.execute("""
+    CREATE VIEW EventAttendance AS
+    SELECT 
+        Event.id AS event_id,
+        Event.title,
+        COUNT(Participant.id) AS total_participants,
+        SUM(CASE WHEN Participant.attendance = TRUE THEN 1 ELSE 0 END) AS attendees,
+        (SUM(CASE WHEN Participant.attendance = TRUE THEN 1 ELSE 0 END) / COUNT(Participant.id)) * 100 AS attendance_rate
+    FROM Event
+    LEFT JOIN Participant ON Event.id = Participant.event_id
+    GROUP BY Event.id;
+    """)
+
 
 
 def downgrade():
@@ -104,3 +121,6 @@ def downgrade():
     op.drop_table('user')
     op.drop_table('location')
     # ### end Alembic commands ###
+    
+    op.execute("DROP VIEW IF EXISTS EventAttendance;")
+

@@ -1,7 +1,18 @@
 from flask_sqlalchemy import SQLAlchemy
 import re
+from sqlalchemy.sql import func
+
+import enum
+from sqlalchemy import Enum
+from datetime import datetime
 
 db = SQLAlchemy()
+
+class UserRole(enum.Enum):
+    USER = "user"
+    ADMIN = "admin"
+    SUPERADMIN = "superadmin"
+
 
 # User 테이블
 class User(db.Model):
@@ -11,6 +22,14 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password = db.Column(db.String(255), nullable=False)
     events = db.relationship('Event', backref='user', lazy=True)  # 관계 설정
+    participants = db.relationship('Participant', foreign_keys='Participant.user_id', lazy=True)
+    role = db.Column(Enum(UserRole), default=UserRole.USER, nullable=False)  # Enum 필드
+
+    def is_admin(self):
+        return self.role in [UserRole.ADMIN, UserRole.SUPERADMIN]
+
+    def is_superadmin(self):
+        return self.role == UserRole.SUPERADMIN
 
 # Location 테이블 (정규화된 테이블)
 class Location(db.Model):
@@ -33,8 +52,28 @@ class Event(db.Model):
 
     __table_args__ = (
         db.CheckConstraint("title <> ''", name="check_title_not_empty"),
-        db.CheckConstraint("date >= '2024-12-01'", name="check_event_future_date"),
     )
+
+    def __init__(self, **kwargs):
+        date = kwargs.get('date')
+        if isinstance(date, str):  # 날짜가 문자열로 들어왔을 경우
+            date = datetime.strptime(date, '%Y-%m-%d')
+        if date and date < datetime.utcnow():  # 날짜가 과거인지 확인
+            raise ValueError("이벤트 날짜는 과거일 수 없습니다.")
+        super().__init__(**kwargs)
+
+    @staticmethod
+    def get_most_popular_event():
+        result = db.session.query(
+            Event.title,
+            func.count(Participant.id).label("participant_count")
+        ).join(Participant, Event.id == Participant.event_id)\
+         .group_by(Event.id)\
+         .order_by(func.count(Participant.id).desc())\
+         .limit(1)\
+         .first()
+        
+        return result
 
 # Participant 테이블
 class Participant(db.Model):
@@ -42,9 +81,16 @@ class Participant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     contact = db.Column(db.String(15), nullable=False)
+    student_id = db.Column(db.String(15), nullable=False)
     event_id = db.Column(db.Integer, db.ForeignKey('event.id', ondelete='CASCADE'), nullable=False, index=True)
-    attendance = db.Column(db.Boolean, default=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)  # 외래 키 추가
+    attendance = db.Column(db.Boolean, default=True)
     uuid = db.Column(db.String(36), unique=True, nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint('event_id', 'contact', name='unique_event_contact'),
+        db.UniqueConstraint('event_id', 'student_id', name='unique_event_student_id'),  # 학번 중복 방지
+    )
 
     # contact 유효성 검사
     @staticmethod
@@ -58,6 +104,8 @@ class Participant(db.Model):
         if contact:
             self.validate_contact(contact)
         super().__init__(**kwargs)
+
+    
 
 # Feedback 테이블
 class Feedback(db.Model):
